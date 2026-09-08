@@ -48,6 +48,7 @@ import (
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	crlog "sigs.k8s.io/controller-runtime/pkg/log"
+	autoscalingv1beta1 "sigs.k8s.io/karpenter/pkg/apis/autoscaling/v1beta1"
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 	karpenterv1alpha1 "sigs.k8s.io/karpenter/pkg/apis/v1alpha1"
 )
@@ -209,6 +210,12 @@ func (s *E2ETestSuite) deleteDeployment() error {
 
 // Deletes in reverse, validates non-existence
 func (s *E2ETestSuite) teardown() {
+	if s.testConfig.CapacityBufferTest.Name != "" {
+		if err := s.deleteCapacityBuffer(); err != nil && !apierrors.IsNotFound(err) {
+			s.t.Logf("Error deleting CapacityBuffer: %v", err)
+		}
+	}
+
 	if err := s.deleteDeployment(); err != nil && !apierrors.IsNotFound(err) {
 		s.t.Logf("Error deleting Deployment: %v", err)
 	}
@@ -249,6 +256,12 @@ func (s *E2ETestSuite) ensureAllNodeClaimDeleted() {
 
 func (s *E2ETestSuite) setup() {
 	// Pre-clean any existing resources from previous runs (delete only if they exist)
+	if s.testConfig.CapacityBufferTest.Name != "" {
+		if err := s.deleteCapacityBuffer(); err != nil && !apierrors.IsNotFound(err) {
+			s.t.Logf("Warning: failed to delete existing CapacityBuffer: %v", err)
+		}
+	}
+
 	if err := s.deleteDeployment(); err != nil && !apierrors.IsNotFound(err) {
 		s.t.Logf("Warning: failed to delete existing test Deployment: %v", err)
 	}
@@ -338,6 +351,7 @@ func TestKarpenterE2ENpn(t *testing.T) {
 		s.TestNpnDriftDetection()
 		s.TestFlexShapeMultipleVnics()
 		s.TestScaleDown()
+		s.TestCapacityBuffer()
 		s.TestStaticCapacity()
 	})
 }
@@ -382,6 +396,12 @@ func createE2ETest(t *testing.T, kubeConfigEnvVar string, testConfigFile string)
 	scheme.AddKnownTypes(gvAlpha,
 		&karpenterv1alpha1.NodeOverlay{},
 		&karpenterv1alpha1.NodeOverlayList{},
+	)
+	gvCapacityBuffer := schema.GroupVersion{Group: autoscalingv1beta1.Group, Version: "v1beta1"}
+	metav1.AddToGroupVersion(scheme, gvCapacityBuffer)
+	scheme.AddKnownTypes(gvCapacityBuffer,
+		&autoscalingv1beta1.CapacityBuffer{},
+		&autoscalingv1beta1.CapacityBufferList{},
 	)
 
 	// Initialize Kubernetes client

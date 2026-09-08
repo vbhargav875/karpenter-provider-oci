@@ -46,6 +46,7 @@ See [Installation](docs/guide/installation.md).
   - [Ensure worker nodes using an OKE image are always updated to the latest image](docs/guide/usage.md#ensure-worker-nodes-using-an-oke-image-are-always-updated-to-the-latest-image)
   - [Maintain a fixed number of worker nodes with static capacity](docs/guide/usage.md#maintain-a-fixed-number-of-worker-nodes-with-static-capacity)
   - [Influence scheduling decisions with `NodeOverlay`](docs/guide/usage.md#influence-scheduling-decisions-with-nodeoverlay)
+  - [Pre-provision spare capacity with `CapacityBuffer`](docs/guide/usage.md#pre-provision-spare-capacity-with-capacitybuffer)
   - [Launch worker nodes for an OciIpNativeCNI cluster](docs/guide/usage.md#launch-worker-nodes-for-an-ociipnativecni-cluster)
 - [Advanced Use Cases](docs/guide/advanced-use-cases.md)
   - [Oracle Cloud Agent Plugins](docs/guide/agent-plugins.md)
